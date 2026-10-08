@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f131d" />
+    <title>Roland E-X50 Tone Finder</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+        rel="stylesheet" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            400: '#fb923c',
+                            500: '#f97316',
+                            600: '#ea580c',
+                        },
+                        dark: {
+                            950: '#080a10',
+                            900: '#0f131d',
+                            850: '#151b28',
+                            800: '#1b2234',
+                            700: '#263048',
+                            600: '#374360'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f131d;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #263048;
+            border-radius: 9999px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374360;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .tap-highlight-transparent {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Category scroll indicators */
+        .category-scroll-container {
+            mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+        }
+
+        @media (min-width: 1024px) {
+            .category-scroll-container {
+                mask-image: none;
+                -webkit-mask-image: none;
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-dark-900 text-slate-100 font-sans min-h-screen antialiased selection:bg-brand-500 selection:text-white pb-24">
+
+    <!-- Main Container: Fully Responsive (Mobile, Tablet, Desktop) -->
+    <div class="w-full max-w-7xl mx-auto min-h-screen flex flex-col relative px-3 sm:px-6 lg:px-8 pt-2 sm:pt-4 pb-12">
+
+        <!-- Top Sticky Header -->
+        <header
+            class="sticky top-0 z-30 pt-2 pb-3 bg-dark-900/95 backdrop-blur-md -mx-3 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 border-b border-dark-700 shadow-md shadow-black/40">
+
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+                <!-- Brand & Logo -->
+                <div class="flex items-center justify-between md:justify-start gap-3">
+                    <div class="flex items-center gap-3">
+                        <!-- Roland Official Logo -->
+                        <div
+                            class="h-10 px-2.5 rounded-xl bg-white border border-dark-700 flex items-center justify-center shadow-sm">
+                            <img src="logo.png" alt="Roland Logo" class="h-8 w-8 object-contain" loading="eager" />
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-semibold text-slate-400">Roland</span>
+                                <span
+                                    class="hidden sm:inline-block px-1.5 py-0.2 rounded bg-orange-500/20 border border-orange-500/30 text-[10px] font-bold text-orange-400 font-mono">ARRANGER</span>
+                            </div>
+                            <h1 class="text-base sm:text-lg font-extrabold text-white tracking-tight leading-tight">
+                                E-X50 Tone Finder</h1>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Action Buttons (Favorites & Total Count Badge) -->
+                    <div class="flex items-center gap-1.5 md:hidden">
+                        <button id="favoriteFilterBtn" onclick="toggleFavoritesOnly()"
+                            class="tap-highlight-transparent p-2 rounded-xl bg-dark-800 border border-dark-700 hover:border-amber-400/50 text-slate-300 hover:text-amber-400 transition-all flex items-center gap-1.5 text-xs font-medium"
+                            title="View Favorites">
+                            <i data-lucide="star" id="favFilterIcon" class="w-4 h-4"></i>
+                            <span id="favCount" class="text-[11px] font-bold hidden">0</span>
+                        </button>
+
+                        <div class="px-2.5 py-1.5 rounded-xl bg-dark-800 border border-dark-700 text-right">
+                            <div class="text-[10px] uppercase text-slate-400 font-medium leading-none">Total</div>
+                            <div id="totalBadge" class="text-xs font-bold text-orange-400 font-mono leading-tight">707
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Search & Action Bar -->
+                <div class="flex-1 max-w-xl md:mx-4">
+                    <div class="relative">
+                        <div
+                            class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" id="searchInput"
+                            placeholder="Search tone number (e.g. 144), name, or LCD..."
+                            class="w-full pl-10 pr-16 sm:pr-20 py-2.5 rounded-xl bg-dark-800 border border-dark-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-sm text-slate-100 placeholder-slate-400 transition-all outline-none"
+                            autocomplete="off" autocorrect="off" spellcheck="false" />
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 gap-1">
+                            <button id="clearSearchBtn" onclick="clearSearch()"
+                                class="p-1 text-slate-400 hover:text-slate-200 hidden tap-highlight-transparent"
+                                title="Clear search">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                            <span
+                                class="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] font-mono text-slate-500 bg-dark-900 border border-dark-700"
+                                title="Keyboard shortcut">/</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Action Buttons -->
+                <div class="hidden md:flex items-center gap-2">
+                    <button id="favoriteFilterBtnDesktop" onclick="toggleFavoritesOnly()"
+                        class="tap-highlight-transparent px-3 py-2 rounded-xl bg-dark-800 border border-dark-700 hover:border-amber-400/50 text-slate-300 hover:text-amber-400 transition-all flex items-center gap-2 text-xs font-semibold"
+                        title="View Favorites">
+                        <i data-lucide="star" id="favFilterIconDesktop" class="w-4 h-4"></i>
+                        <span>Favorites</span>
+                        <span id="favCountDesktop"
+                            class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold hidden">0</span>
+                    </button>
+
+                    <div class="px-3 py-1.5 rounded-xl bg-dark-800 border border-dark-700 text-right">
+                        <div class="text-[10px] uppercase text-slate-400 font-medium leading-none">Total Tones</div>
+                        <div class="text-xs font-bold text-orange-400 font-mono leading-tight">707</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Filter Pills (Horizontal Scroll on Mobile, Smooth Flex on Large Screens) -->
+            <div
+                class="category-scroll-container overflow-x-auto hide-scrollbar -mx-3 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 pb-0.5">
+                <div class="flex gap-1.5 w-max md:w-auto md:flex-wrap items-center" id="categoryTabs">
+                    <!-- Generated by JS -->
+                </div>
+            </div>
+        </header>
+
+        <!-- Quick Status Bar -->
+        <div class="flex items-center justify-between text-xs text-slate-400 pt-3.5 pb-2.5 px-1">
+            <div id="resultsCount">Showing <span class="font-bold text-slate-200">707</span> tones</div>
+            <div class="flex items-center gap-3">
+                <span class="hidden sm:inline-block text-[11px] text-slate-500 font-mono">Click any card to copy tone details</span>
+            </div>
+        </div>
+
+        <!-- Tone List Container (Responsive Grid: 1 col Mobile, 2 cols Tablet, 3 cols Desktop, 4 cols Wide) -->
+        <main id="toneList"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3 flex-1">
+            <!-- Generated list items -->
+        </main>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-center px-4 w-full">
+            <div
+                class="w-16 h-16 rounded-2xl bg-dark-850 border border-dark-700 flex items-center justify-center text-slate-400 mb-3 shadow-lg">
+                <i data-lucide="search-x" class="w-8 h-8 text-orange-400"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-100 mb-1">No Tones Found</h3>
+            <p class="text-xs text-slate-400 max-w-sm">Try searching with another number (1 - 707), LCD abbreviation, or switch category filter.</p>
+            <button onclick="resetFilters()"
+                class="mt-4 px-4 py-2.5 rounded-xl bg-dark-800 border border-dark-700 hover:border-brand-500 text-xs font-semibold text-orange-400 transition shadow-sm">
+                Reset Search
+            </button>
+        </div>
+
+        <!-- Quick Number Dial Modal / Floating Action Button -->
+        <div class="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40">
+            <button onclick="openKeypadModal()"
+                class="tap-highlight-transparent flex items-center gap-2 px-4 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-dark-950 font-bold text-xs sm:text-sm shadow-xl shadow-black/50 hover:scale-105 active:scale-95 transition-all">
+                <i data-lucide="calculator" class="w-4 h-4 stroke-[2.5]"></i>
+                <span>Quick Dial</span>
+                <span class="hidden lg:inline-block px-1.5 py-0.2 rounded bg-black/20 text-[10px] font-mono">K</span>
+            </button>
+        </div>
+
+        <!-- Keypad Modal Dialog (Responsive Bottom Sheet on Mobile, Centered Modal on Tablet/Desktop) -->
+        <div id="keypadModal"
+            class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
+            <div
+                class="w-full sm:max-w-xs bg-dark-850 border border-dark-700 rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl transition-transform max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between pb-3 border-b border-dark-700 mb-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="calculator" class="w-4 h-4 text-orange-400"></i>
+                        <h3 class="text-sm font-bold text-slate-100">Tone Number Keypad</h3>
+                    </div>
+                    <button onclick="closeKeypadModal()" class="p-1 rounded-lg text-slate-400 hover:text-white"
+                        title="Close">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Number Display -->
+                <div class="bg-dark-900 rounded-xl p-3 text-center border border-dark-700 mb-4 shadow-inner">
+                    <div class="text-[10px] uppercase font-mono tracking-wider text-slate-400">Tone Number (1 - 707)
+                    </div>
+                    <div id="keypadDisplay"
+                        class="text-3xl font-mono font-black text-orange-400 min-h-[36px] tracking-wider">_</div>
+                </div>
+
+                <!-- Keypad Grid -->
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                    <button onclick="pressKey('1')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-dark-800 active:bg-orange-500/20 text-lg font-bold font-mono text-slate-100 border border-dark-700 active:border-orange-500 hover:border-slate-500 transition">1</button>
+                    <button onclick="pressKey('2')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-dark-800 active:bg-orange-500/20 text-lg font-bold font-mono text-slate-100 border border-dark-700 active:border-orange-500 hover:border-slate-500 transition">2</button>
+                    <button onclick="pressKey('3')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-dark-800 active:bg-orange-500/20 text-lg font-bold font-mono text-slate-100 border border-dark-700 active:border-orange-500 hover:border-slate-500 transition">3</button>
+                    <button onclick="pressKey('4')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-dark-800 active:bg-orange-500/20 text-lg font-bold font-mono text-slate-100 border border-dark-700 active:border-orange-500 hover:border-slate-500 transition">4</button>
+                    <button onclick="pressKey('5')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-dark-800 active:bg-orange-500/20 text-lg font-bold font-mono text-slate-100 border border-dark-700 active:border-orange-500 hover:border-slate-500 transition">5</button>
+                    <button onclick="pressKey('6')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-dark-800 active:bg-orange-500/20 text-lg font-bold font-mono text-slate-100 border border-dark-700 active:border-orange-500 hover:border-slate-500 transition">6</button>
+                    <button onclick="pressKey('7')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-dark-800 active:bg-orange-500/20 text-lg font-bold font-mono text-slate-100 border border-dark-700 active:border-orange-500 hover:border-slate-500 transition">7</button>
+                    <button onclick="pressKey('8')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-dark-800 active:bg-orange-500/20 text-lg font-bold font-mono text-slate-100 border border-dark-700 active:border-orange-500 hover:border-slate-500 transition">8</button>
+                    <button onclick="pressKey('9')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-dark-800 active:bg-orange-500/20 text-lg font-bold font-mono text-slate-100 border border-dark-700 active:border-orange-500 hover:border-slate-500 transition">9</button>
+                    <button onclick="pressKey('clear')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-red-950/50 text-red-400 font-bold text-xs border border-red-900/50 hover:bg-red-900/40 transition">CLR</button>
+                    <button onclick="pressKey('0')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-dark-800 active:bg-orange-500/20 text-lg font-bold font-mono text-slate-100 border border-dark-700 active:border-orange-500 hover:border-slate-500 transition">0</button>
+                    <button onclick="pressKey('back')"
+                        class="py-3 sm:py-3.5 rounded-xl bg-dark-800 active:bg-orange-500/20 text-slate-300 border border-dark-700 flex items-center justify-center hover:border-slate-500 transition"
+                        title="Delete digit">
+                        <i data-lucide="delete" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <button onclick="submitKeypad()"
+                    class="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-dark-950 font-bold text-sm tracking-wide shadow-md shadow-orange-500/30 hover:opacity-95 transition active:scale-[0.99]">
+                    SHOW TONE
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast Notification for Copy / Favorites -->
+        <div id="toast"
+            class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-dark-800 text-white text-xs font-semibold px-4 py-2.5 rounded-full border border-dark-600 shadow-xl shadow-black/60 flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300">
+            <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400" id="toastIcon"></i>
+            <span id="toastMessage">Copied to clipboard</span>
+        </div>
+
+    </div>
+
+    <script>
+        // Master data of 707 Roland E-X50 tones
+        const rawCategories = [
+            {
+                name: "PIANO",
+                sub: "Piano",
+                items: [
+                    [1, "Grand Piano", "GrandPno"],
+                    [2, "Ballad Piano", "BalladP"],
+                    [3, "Mellow Piano", "MellowP"],
+                    [4, "Bright Piano", "BrightP"],
+                    [5, "Acoustic Piano", "AcPiano"],
+                    [6, "Acoustic Piano (wide)", "AcPianoW"],
+                    [7, "Acoustic Piano (dark)", "AcPianoD"],
+                    [8, "Octave Grand Piano 1", "OctPno1"],
+                    [9, "Octave Grand Piano 2", "OctPno2"],
+                    [10, "Piano & Strings", "Pno&Str"],
+                    [11, "Piano & Pad", "Pno&Pad"],
+                    [12, "Piano & Choir", "Pno&Cho"],
+                    [13, "Piano & EP", "Pno&EP"],
+                    [14, "Piano & Vibraphone", "Pno&Vib"],
+                    [15, "Harpsichord 1", "Harpsi1"],
+                    [16, "Harpsichord 2", "Harpsi2"],
+                    [17, "Harpsichord (octave mix)", "HarpsiO"],
+                    [18, "Harpsichord (wide)", "HarpsiW"],
+                    [19, "Harpsichord (with key off)", "HarpsiOf"],
+                    [20, "Honky Tonk Piano 1", "Hny Tonk1"],
+                    [21, "Honky Tonk Piano 2", "Hny Tonk2"],
+                    [22, "Honky Tonk Piano (wide)", "Hny TonkW"],
+                    [23, "Honky Tonk Piano (dark)", "Hny TonkD"],
+                    [24, "Electric Grand Piano 1", "E.Grand1"],
+                    [25, "Electric Grand Piano 2", "E.Grand2"],
+                    [26, "Electric Grand Piano (wide)", "E.GrandW"],
+                    [27, "Electric Grand Piano (dark)", "E.GrandD"],
+                    [28, "Detuned Electric Piano 1", "Detun EP1"],
+                    [29, "Detuned Electric Piano 2", "Detun EP2"],
+                    [30, "Electric Piano 1", "E.Piano1"],
+                    [31, "Electric Piano 2", "E.Piano2"],
+                    [32, "Electric Piano 3", "E.Piano3"],
+                    [33, "Electric Piano 4", "E.Piano4"],
+                    [34, "Electric Piano 1 (velocity mix)", "E.PnoV1"],
+                    [35, "Electric Piano 2 (velocity mix)", "E.PnoV2"],
+                    [36, "60's Electric Piano", "60'sEP"],
+                    [37, "EP Legend", "EPLegend"],
+                    [38, "Phase EP", "PhaseEP"],
+                    [39, "Clavi 1", "Clavi1"],
+                    [40, "Clavi 2", "Clavi2"],
+                    [41, "Phase Clavi", "PhaseClv"],
+                    [42, "Wah Clavi", "WahClv"],
+                    [43, "Pulse Clavi", "PulseClv"],
+                    [44, "Dream EP", "DreamEP"],
+                    [45, "Tremolo EP", "TremoEP"],
+                    [46, "Funk EP", "FunkEP"],
+                    [47, "Warm EP", "WarmEP"],
+                    [48, "ChoirEP", "ChoirEP"],
+                    [49, "Wah EP", "WahEP"],
+                    [50, "Modern EP", "ModernEP"],
+                    [51, "EP Pad", "EPPad"]
+                ]
+            },
+            {
+                name: "CHROMATIC PERCUSSION",
+                sub: "ChroPerc",
+                items: [
+                    [52, "Celesta 1", "Celestat"],
+                    [53, "Celesta 2", "Celesta2"],
+                    [54, "Celesta 3", "Celesta3"],
+                    [55, "Glockenspiel 1", "Glocken 1"],
+                    [56, "Glockenspiel 2", "Glocken2"],
+                    [57, "Glockenspiel 3", "Glocken3"],
+                    [58, "Music Box 1", "MuscBox1"],
+                    [59, "Music Box 2", "MuscBox2"],
+                    [60, "Music Box 3", "MuscBox3"],
+                    [61, "Vibraphone 1", "Vibra1"],
+                    [62, "Vibraphone 2", "Vibra2"],
+                    [63, "Vibraphone (wide)", "VibraW"],
+                    [64, "Marimba 1", "Marimba1"],
+                    [65, "Marimba 2", "Marimba2"],
+                    [66, "Marimba (wide)", "Marimbaw"],
+                    [67, "Xylophone 1", "Xylopho1"],
+                    [68, "Xylophone 2", "Xylopho2"],
+                    [69, "Xylophone 3", "Xylopho3"],
+                    [70, "Tubular Bells 1", "TubulBe1"],
+                    [71, "Tubular Bells 2", "TubulBe2"],
+                    [72, "Church Bell", "ChurBell"],
+                    [73, "Carillon", "Carillon"],
+                    [74, "Dulcimer 1", "Dulcime1"],
+                    [75, "Dulcimer 2", "Dulcime2"],
+                    [76, "Santur", "Santur"]
+                ]
+            },
+            {
+                name: "ORGAN",
+                sub: "Organ",
+                items: [
+                    [77, "Italian 60's Organ", "60'sOrgn"],
+                    [78, "Drawbar Organ 1", "DrawOrg1"],
+                    [79, "Drawbar Organ 2", "DrawOrg2"],
+                    [80, "Drawbar Organ 3", "DrawOrg3"],
+                    [81, "Detuned Drawbar Organ", "DeDraOrg"],
+                    [82, "Detuned Percussive Organ", "DePerOrg"],
+                    [83, "Percussive Organ 1", "PercOrg1"],
+                    [84, "Percussive Organ 2", "PercOrg2"],
+                    [85, "Percussive Organ 3", "PercOrg3"],
+                    [86, "70's Percussive Organ", "70'sPcOr"],
+                    [87, "Rock Organ 1", "RockOrg1"],
+                    [88, "Rock Organ 2", "RockOrg2"],
+                    [89, "Rock Organ 3", "RockOrg3"],
+                    [90, "Church Organ 1", "ChurOrg 1"],
+                    [91, "Church Organ 2", "ChurOrg2"],
+                    [92, "Church Organ 3", "ChurchOrg3"],
+                    [93, "Church Organ (octave mix)", "ChurOrgo"],
+                    [94, "Detuned Church Organ", "DeChuOrg"],
+                    [95, "Reed Organ 1", "ReedOrg1"],
+                    [96, "Reed Organ 2", "ReedOrg2"],
+                    [97, "Rotary Organ", "RotyOrgn"],
+                    [98, "Puff Organ", "PuffOran"],
+                    [99, "Accordion 1", "Acordin 1"],
+                    [100, "Accordion 2", "Acordin2"],
+                    [101, "Accordion 3", "Acordin3"],
+                    [102, "Harmonica 1", "Harmnic1"],
+                    [103, "Harmonica 2", "Harmnic2"],
+                    [104, "Harmonica 3", "Harmnic3"],
+                    [105, "Tango Accordion 1", "TangAcd1"],
+                    [106, "Tango Accordion 2", "TangAcd2"]
+                ]
+            },
+            {
+                name: "GUITAR",
+                sub: "Guitar",
+                items: [
+                    [107, "Acoustic Guitar (nylon) 1", "NylonGt1"],
+                    [108, "Acoustic Guitar (nylon) 2", "NylonGt2"],
+                    [109, "Acoustic Guitar (nylon) 3", "NylonGt3"],
+                    [110, "Acoustic Guitar (nylon + key off)", "NylGtrOf"],
+                    [111, "Ukulele", "Ukulele"],
+                    [112, "Acoustic Guitar (steel) 1", "SteelGt1"],
+                    [113, "Acoustic Guitar (steel) 2", "SteelGt2"],
+                    [114, "12-Strings Guitar", "12StrGtr"],
+                    [115, "Mandolin 1", "Mandoli1"],
+                    [116, "Mandolin 2", "Mandoli2"],
+                    [117, "Steel Guitar with Body Sound", "SteelBdy"],
+                    [118, "Electric Guitar (jazz) 1", "JazzGtr1"],
+                    [119, "Electric Guitar (jazz) 2", "JazzGtr2"],
+                    [120, "Electric Guitar (pedal steel)", "PedalGtr"],
+                    [121, "Electric Guitar (clean) 1", "CleanGt1"],
+                    [122, "Electric Guitar (clean) 2", "CleanGt2"],
+                    [123, "Electric Guitar (detuned clean)", "DetCInGt"],
+                    [124, "Mid Tone Guitar", "Mid TonGt"],
+                    [125, "Electric Guitar (muted) 1", "MutedGt1"],
+                    [126, "Electric Guitar (muted) 2", "MutedGt2"],
+                    [127, "Electric Guitar (funky cutting)", "FunkGt"],
+                    [128, "Electric Guitar (muted velo-sw)", "MutvelGt"],
+                    [129, "Jazz Man", "JazzMan"],
+                    [130, "Overdriven Guitar 1", "Ovrdriv1"],
+                    [131, "Overdriven Guitar 2", "Ovrdriv2"],
+                    [132, "Guitar Pinch", "GtPinch"],
+                    [133, "Distortion Guitar 1", "DistGtr1"],
+                    [134, "Distortion Guitar 2", "DistGtr2"],
+                    [135, "Distortion Guitar (with feedback)", "FeedbkGt"],
+                    [136, "Guitar Feedback", "GtrFedbk"],
+                    [137, "Distorted Rhythm Guitar", "DistRyth"],
+                    [138, "Guitar Harmonics 1", "GtrHarm1"],
+                    [139, "Guitar Harmonics 2", "GtHarmo2"],
+                    [140, "Velocity Nylon Guitar", "NyinGtVe"]
+                ]
+            },
+            {
+                name: "BASS",
+                sub: "Bass",
+                items: [
+                    [141, "Acoustic Bass 1", "AcoBass1"],
+                    [142, "Acoustic Bass 2", "AcoBass2"],
+                    [143, "Wah Bass", "WahBass"],
+                    [144, "Electric Bass (finger)", "FngrBass"],
+                    [145, "Finger Slap Bass", "FngrSlap"],
+                    [146, "Electric Bass (pick) 1", "PickBas1"],
+                    [147, "Electric Bass (pick) 2", "PickBas2"],
+                    [148, "Fretless Bass 1", "Fretles1"],
+                    [149, "Fretless Bass 2", "Fretles2"],
+                    [150, "Slap Bass 1", "SlapBas1"],
+                    [151, "Slap Bass 2", "Slap Bas2"],
+                    [152, "Slap Bass 3", "SlapBas3"],
+                    [153, "Slap Bass 4", "SlapBas4"],
+                    [154, "Synth Bass 1", "SynBass1"],
+                    [155, "Synth Bass 2", "SynBass2"],
+                    [156, "Synth Bass 3", "SynBass3"],
+                    [157, "Synth Bass 4", "SynBass4"],
+                    [158, "Warm Synth Bass", "WarmBass"],
+                    [159, "Rsonance SynBass", "ResoBass"],
+                    [160, "Clavi Bass", "ClavBass"],
+                    [161, "Hammer", "Hammer"],
+                    [162, "Attack Bass", "AtackBas"],
+                    [163, "Synth Bass (rubber) 1", "RubbBas1"],
+                    [164, "Synth Bass (rubber) 2", "RubbBas2"],
+                    [165, "Attack Pulse", "AtackPls"]
+                ]
+            },
+            {
+                name: "STRINGS & ORCHESTRAL",
+                sub: "Str&Orch",
+                items: [
+                    [166, "Violin 1", "Violin 1"],
+                    [167, "Violin 2", "Violin2"],
+                    [168, "Violin (slow attack)", "SIViolin"],
+                    [169, "Viola 1", "Viola1"],
+                    [170, "Viola 2", "Viola2"],
+                    [171, "Cello 1", "Cello1"],
+                    [172, "Cello 2", "Cello2"],
+                    [173, "Contrabass 1", "Contrbs1"],
+                    [174, "Contrabass 2", "Contrbs2"],
+                    [175, "Tremolo Strings 1", "TremStr1"],
+                    [176, "Tremolo Strings 2", "TremStr2"],
+                    [177, "Tremolo Strings 3", "TremStr3"],
+                    [178, "Pizzicato Strings 1", "PizzStr1"],
+                    [179, "Pizzicato Strings 2", "PizzStr2"],
+                    [180, "Orchestral Harp 1", "Harp1"],
+                    [181, "Orchestral Harp 2", "Harp2"],
+                    [182, "Yang Chin", "Yang Chin"],
+                    [183, "Timpani 1", "Timpani1"],
+                    [184, "Timpani 2", "Timpani2"],
+                    [185, "Strings Ensembles 1", "Strings1"],
+                    [186, "Strings Ensembles 2", "Strings2"],
+                    [187, "Strings Ensembles 3", "Strings3"],
+                    [188, "String Ensembles 4", "Strings4"],
+                    [189, "Strings & Brass", "Str&Bras"],
+                    [190, "60's Strings", "60'sStr"],
+                    [191, "Synth Strings 1", "SynStrs1"],
+                    [192, "Synth Strings 2", "SynStrs2"],
+                    [193, "Synth Strings 3", "SynStrs3"],
+                    [194, "Synth Strings 4", "SynStrs4"],
+                    [195, "Synth Strings 5", "SynStrs5"],
+                    [196, "Choir Aahs 1", "ChorAah1"],
+                    [197, "Choir Aahs 2", "ChorAah2"],
+                    [198, "Choir Aahs 3", "ChorAah3"],
+                    [199, "Voice Oohs 1", "VoicOoh1"],
+                    [200, "Voice Oohs 2", "VoicOoh2"],
+                    [201, "Humming", "Humming"],
+                    [202, "Analog Voice", "AnaVoice"],
+                    [203, "Synth Voice 1", "SynVoic1"],
+                    [204, "Synth Voice 2", "SynVoic2"],
+                    [205, "Orchestra Hit 1", "OrchHit1"],
+                    [206, "Orchestra Hit 2", "OrchHit2"],
+                    [207, "Bass Hit Plus", "BassHit"],
+                    [208, "6th Hit", "6thHit"],
+                    [209, "Euro Hit", "EuroHit"]
+                ]
+            },
+            {
+                name: "BRASS",
+                sub: "Brass",
+                items: [
+                    [210, "Trumpet 1", "Trumpet1"],
+                    [211, "Trumpet 2", "Trumpet2"],
+                    [212, "Dark Trumpet", "Dark Trp"],
+                    [213, "Trombone 1", "Trmbone 1"],
+                    [214, "Trombone 2", "Trmbone2"],
+                    [215, "Trombone 3", "Trmbone3"],
+                    [216, "Bright Trombone", "BritBone"],
+                    [217, "Tuba1", "Tuba1"],
+                    [218, "Tuba 2", "Tuba2"],
+                    [219, "Muted Trumpet 1", "Mute Trp1"],
+                    [220, "Muted Trumpet 2", "Mute Trp2"],
+                    [221, "Muted Trumpet 3", "Mute Trp3"],
+                    [222, "French Horn 1", "FrHorn1"],
+                    [223, "French Horn 2", "FrHorn2"],
+                    [224, "French Horn 3", "FrHorn3"],
+                    [225, "Brass Section 1", "Brass1"],
+                    [226, "Brass Section 2", "Brass2"],
+                    [227, "Brass Section 3", "Brass3"],
+                    [228, "Synth Brass 1", "SynBras1"],
+                    [229, "Synth Brass 2", "SynBras2"],
+                    [230, "Synth Brass 3", "SynBras3"],
+                    [231, "Synth Brass 4", "SynBras4"],
+                    [232, "Synth Brass 5", "SynBras5"],
+                    [233, "Synth Brass 6", "SynBras6"],
+                    [234, "Synth Brass 7", "SynBras7"],
+                    [235, "Synth Brass 8", "SynBras8"],
+                    [236, "Analog Synth Brass 1", "AnaBras1"],
+                    [237, "Analog Synth Brass 2", "AnaBras2"],
+                    [238, "Analog Synth Brass 3", "AnaBras3"],
+                    [239, "Rock Brass 1", "RockBrs1"],
+                    [240, "Rock Brass 2", "RockBrs2"],
+                    [241, "Funny 1", "Funny1"],
+                    [242, "Funny 2", "Funny2"],
+                    [243, "French Horn", "FrHorn"]
+                ]
+            },
+            {
+                name: "REED",
+                sub: "Reed",
+                items: [
+                    [244, "Soprano Sax 1", "SprnSax1"],
+                    [245, "Soprano Sax 2", "SprnSax2"],
+                    [246, "Soprano Sax 3", "SprnSax3"],
+                    [247, "Alto Sax 1", "AltoSax1"],
+                    [248, "Alto Sax 2", "Alto Sax2"],
+                    [249, "Alto Sax 3", "Alto Sax3"],
+                    [250, "Tenor Sax 1", "TenoSax1"],
+                    [251, "Tenor Sax 2", "TenoSax2"],
+                    [252, "Tenor Sax 3", "TenoSax3"],
+                    [253, "Baritone Sax 1", "BariSax1"],
+                    [254, "Baritone Sax 2", "BariSax2"],
+                    [255, "Baritone Sax 3", "BariSax3"],
+                    [256, "Oboe 1", "Oboe1"],
+                    [257, "Oboe 2", "Oboe2"],
+                    [258, "Oboe 3", "Oboe3"],
+                    [259, "2 Oboes", "20boes"],
+                    [260, "English Horn 1", "EngHorn1"],
+                    [261, "English Horn 2", "EngHorn2"],
+                    [262, "English Horn 3", "EngHorn3"],
+                    [263, "2 English Horns", "2EngHons"],
+                    [264, "Bassoon 1", "Bassoon1"],
+                    [265, "Bassoon 2", "Bassoon2"],
+                    [266, "Bassoon 3", "Bassoon3"],
+                    [267, "2 Basoons", "2Basoons"],
+                    [268, "Clarinet 1", "Clarine1"],
+                    [269, "Clarinet 2", "Clarine2"],
+                    [270, "Clarinet 3", "Clarine3"],
+                    [271, "2 Clarinets", "2Clarins"]
+                ]
+            },
+            {
+                name: "PIPE",
+                sub: "Pipe",
+                items: [
+                    [272, "Piccolo 1", "Piccolo1"],
+                    [273, "Piccolo 2", "Piccolo2"],
+                    [274, "Piccolo 3", "Piccolo3"],
+                    [275, "2 Piccolos", "2Picolos"],
+                    [276, "Sweet Flute", "SweeFlut"],
+                    [277, "Flute 1", "Flute1"],
+                    [278, "Flute 2", "Flute2"],
+                    [279, "Flute 3", "Flute3"],
+                    [280, "2 Flutes", "2Flutes"],
+                    [281, "Recorder 1", "Recorde1"],
+                    [282, "Recorder 2", "Recorde2"],
+                    [283, "2 Recorders", "2Records"],
+                    [284, "Pan Flute 1", "PanFlut1"],
+                    [285, "Pan Flute 2", "PanFlut2"],
+                    [286, "Sweet Pan Flute", "Swpanflu"],
+                    [287, "Blown Bottle 1", "Bottle1"],
+                    [288, "Blown Bottle 2", "Bottle2"],
+                    [289, "Shakuhachi 1", "Shakhch1"],
+                    [290, "Shakuhachi 2", "Shakhch2"],
+                    [291, "Whistle 1", "Whistle1"],
+                    [292, "Whistle 2", "Whistle2"],
+                    [293, "Ocarina 1", "Ocarina1"],
+                    [294, "Ocarina 2", "Ocarina2"]
+                ]
+            },
+            {
+                name: "SYNTH LEAD",
+                sub: "SynthLd",
+                items: [
+                    [295, "Lead 1 (square) 1", "SquarLd1"],
+                    [296, "Lead 1 (square) 2", "SquarLd2"],
+                    [297, "Lead 1 (square) 3", "SquarLd3"],
+                    [298, "Lead 1b (sine)", "SineLead"],
+                    [299, "Lead 2 (sawtooth) 1", "SawLead1"],
+                    [300, "Lead 2 (sawtooth) 2", "SawLead2"],
+                    [301, "Lead 2 (sawtooth) 3", "SawLead3"],
+                    [302, "Lead 2b (saw + pulse)", "SawPisLd"],
+                    [303, "Lead 2c (double sawtooth)", "DubSawLd"],
+                    [304, "Lead 2d (sequenced analog) 1", "SqAnaLd1"],
+                    [305, "Lead 2d (sequenced analog) 2", "SqAnaLd2"],
+                    [306, "Wavy Sawtooth 1", "WavySaw1"],
+                    [307, "Bauble Lead", "BaubleLd"],
+                    [308, "Super Analog", "SuperAna"],
+                    [309, "Lead 3 (calliope) 1", "CalipLd1"],
+                    [310, "Lead 3 (calliope) 2", "CalipLd2"],
+                    [311, "Lead 4 (chiff) 1", "ChiffLd1"],
+                    [312, "Lead 4 (chiff) 2", "ChiffLd2"],
+                    [313, "Lead 4 (chiff) 3", "ChiffLd3"],
+                    [314, "Lead 4 (chiff) 4", "ChiffLd4"],
+                    [315, "Lead 5 (charang) 1", "CharaLd1"],
+                    [316, "Lead 5 (charang) 2", "CharaLd2"],
+                    [317, "Lead 5 (charang) 3", "CharaLd3"],
+                    [318, "Lead 5 (charang) 4", "CharaLd4"],
+                    [319, "Lead 5a (wire lead) 1", "WireLd1"],
+                    [320, "Lead 5a (wire lead) 2", "WireLd2"],
+                    [321, "Lead 6 (voice) 1", "VoiceLd1"],
+                    [322, "Lead 6 (voice) 2", "VoiceLd2"],
+                    [323, "Lead 7 (fifths) 1", "FifthLd1"],
+                    [324, "Lead 7 (fifths) 2", "FifthLd2"],
+                    [325, "Lead 8 (bass + lead) 1", "BasLead1"],
+                    [326, "Lead 8 (bass + lead) 2", "BasLead2"],
+                    [327, "Lead 8 (bass + lead) 3", "Bs&Lead3"],
+                    [328, "Lead 8a (soft wrl)", "SftWrlLd"],
+                    [329, "Massiness", "Massin"],
+                    [330, "Square", "Square"],
+                    [331, "Slow Square Lead", "SlwSquLd"],
+                    [332, "Sine Solo", "SineSolo"],
+                    [333, "Lead 1 (square) 4", "SquarLd4"],
+                    [334, "Thick Square", "ThickSqu"],
+                    [335, "2Oscillators Lead", "20scLd"],
+                    [336, "Wavy Sawtooth 2", "WavySaw2"],
+                    [337, "Analog Lead", "AnaLead"],
+                    [338, "Big Lead", "BigLead"],
+                    [339, "Fat Lead", "FatLead"],
+                    [340, "PWM 4th", "Rezz4th"],
+                    [341, "Delayed Lead 1", "DlyLead1"],
+                    [342, "Delayed Lead 2", "DiyLead2"],
+                    [343, "Fifth Lead", "FifLead"],
+                    [344, "Corrie", "Corrie"],
+                    [345, "Quint", "Quint"]
+                ]
+            },
+            {
+                name: "SYNTH PAD",
+                sub: "SynthPad",
+                items: [
+                    [346, "Pad 1 (new age) 1", "NewAge1"],
+                    [347, "Pad 1 (new age) 2", "NewAge2"],
+                    [348, "Pad 1 (new age) 3", "NewAge3"],
+                    [349, "Pad 1 (new age) 4", "NewAge4"],
+                    [350, "Pad 2 (warm) 1", "WarmPad1"],
+                    [351, "Pad 2 (warm) 2", "WarmPad2"],
+                    [352, "Pad 2 (warm) 3", "WarmPad3"],
+                    [353, "Pad 2a (sine pad)", "SinePad"],
+                    [354, "Pad 3 (polysynth) 1", "PolySyn1"],
+                    [355, "Pad 3 (polysynth) 2", "PolySyn2"],
+                    [356, "Pad 3 (polysynth) 3", "PolySyn3"],
+                    [357, "Pad 3 (polysynth) 4", "PolySyn4"],
+                    [358, "Pad 4 (choir) 1", "ChoirPd1"],
+                    [359, "Pad 4 (choir) 2", "ChoirPd2"],
+                    [360, "Pad 4a (itopia)", "ItopiaPd"],
+                    [361, "Pad 5 (bowed) 1", "BowedPd1"],
+                    [362, "Pad 5 (bowed) 2", "BowedPd2"],
+                    [363, "Pad 5 (bowed) 3", "BowedPd3"],
+                    [364, "Pad 5 (bowed) 4", "BowedPd4"],
+                    [365, "Pad 6 (metallic) 1", "MetalPd1"],
+                    [366, "Pad 6 (metallic) 2", "MetalPd2"],
+                    [367, "Pad 6 (metallic) 3", "MetalPd3"],
+                    [368, "Pad 7 (halo) 1", "HaloPad1"],
+                    [369, "Pad 7 (halo) 2", "HaloPad2"],
+                    [370, "Pad 7 (halo) 3", "HaloPad3"],
+                    [371, "Pad 7 (halo) 4", "HaloPad4"],
+                    [372, "Pad 8 (sweep) 1", "SweepPd1"],
+                    [373, "Pad 8 (sweep) 2", "SweepPd2"],
+                    [374, "Pad 8 (sweep) 3", "SweepPd3"],
+                    [375, "Pan Pad 1", "PanPad 1"],
+                    [376, "Pan Pad 2", "PanPad2"],
+                    [377, "Dipolar Pad", "DipolPad"],
+                    [378, "PWM Pad", "PWMPad"],
+                    [379, "Warmly Pad", "WarmlyPd"],
+                    [380, "Horn Pad", "HornPad"],
+                    [381, "Click Pad", "ClickPad"],
+                    [382, "Analog Pad", "AnalogPd"],
+                    [383, "80's Poly Pad", "80'sPoly"],
+                    [384, "PWM 4th Soft", "PWM4thSf"],
+                    [385, "Synth Calliope Soft", "SynCalSf"],
+                    [386, "Soft Vox", "SoftVox"],
+                    [387, "5th SawWave", "5thSaw"],
+                    [388, "5th Lead Soft", "5thLdSf"],
+                    [389, "Slow Square", "SISquare"],
+                    [390, "New Year Pad", "New Year"],
+                    [391, "Space Voice", "SpcVoice"],
+                    [392, "Rising", "Rising"],
+                    [393, "Congregate", "Congrega"]
+                ]
+            },
+            {
+                name: "SYNTH SFX",
+                sub: "SynthSFX",
+                items: [
+                    [394, "FX 1 (rain) 1", "FXRain1"],
+                    [395, "FX 1 (rain) 2", "FXRain2"],
+                    [396, "FX 2 (soundtrack) 1", "Sondtrk1"],
+                    [397, "FX 2 (soundtrack) 2", "Sondtrk2"],
+                    [398, "Prelude", "Prelude"],
+                    [399, "FX 3 (crystal) 1", "Crystal1"],
+                    [400, "FX 3 (crystal) 2", "Crystal2"],
+                    [401, "FX 3 (crystal) 3", "Crystal3"],
+                    [402, "FX 3a (synth mallet)", "SynMalet"],
+                    [403, "FX 4 (atmosphere) 1", "Atmosph1"],
+                    [404, "FX 4 (atmosphere) 2", "Atmosph2"],
+                    [405, "Warm Air", "Warm Air"],
+                    [406, "FX 5 (brightness) 1", "Bright1"],
+                    [407, "FX 5 (brightness) 2", "Bright2"],
+                    [408, "Smog", "Smog"],
+                    [409, "FX 6 (goblins) 1", "Goblins1"],
+                    [410, "FX 6 (goblins) 2", "Goblins2"],
+                    [411, "FX 6 (goblins) 3", "Goblins3"],
+                    [412, "Choir Bell 1", "ChorBel1"],
+                    [413, "Choir Bell 2", "ChorBel2"],
+                    [414, "FX 7 (Echoes) 1", "Echoes1"],
+                    [415, "FX 7 (Echoes) 2", "Echoes2"],
+                    [416, "FX 7 (Echoes) 3", "Echoes3"],
+                    [417, "FX 7b (echo pan)", "EchoPan"],
+                    [418, "FX 7a (echo Bell) 1", "EchoBel1"],
+                    [419, "FX 7a (echo Bell) 2", "EchoBel2"],
+                    [420, "FX 7a (echo Bell) 3", "EchoBel3"],
+                    [421, "FX 8 (sci-fi) 1", "SCI-Fi1"],
+                    [422, "FX 8 (sci-fi) 2", "Sci-Fi2"],
+                    [423, "FX 8 (sci-fi) 3", "Sci-Fi3"]
+                ]
+            },
+            {
+                name: "INDIA",
+                sub: "India",
+                items: [
+                    [424, "Harmonium 1", "Hrmnium1"],
+                    [425, "Harmonium 2", "Hrmnium2"],
+                    [426, "Harmonium 3", "Hrmnium3"],
+                    [427, "Sitar 1", "Sitar1"],
+                    [428, "Sitar Drone", "SitarDrn"],
+                    [429, "Classic Sitar", "ClsSitar"],
+                    [430, "Sitar 2", "Sitar2"],
+                    [431, "Sitar 3", "Sitar3"],
+                    [432, "Detuned Sitar", "DtnSitar"],
+                    [433, "Sitar Glissand", "GlsSitar"],
+                    [434, "Tanpura", "Tanpura"],
+                    [435, "Tanpura Low", "Tanpural"],
+                    [436, "Tanpura Mid", "TanpuraM"],
+                    [437, "Sarod", "Sarod"],
+                    [438, "Santur Ex", "SanturEx"],
+                    [439, "Santur 1", "Santurt"],
+                    [440, "Santur 2", "Santur2"],
+                    [441, "Santur 3", "Santur3"],
+                    [442, "Mountain Dulcimer", "MtDulcmr"],
+                    [443, "India stroke", "IndStrok"],
+                    [444, "Tabla Tarang", "Ind Tarng"],
+                    [445, "Indian Flute 1", "IndFlut1"],
+                    [446, "Indian Flute 2", "IndFlut2"],
+                    [447, "Sitar 4", "Sitar4"],
+                    [448, "Sitar 5", "Sitar5"],
+                    [449, "Sitar 6", "Sitar6"]
+                ]
+            },
+            {
+                name: "INDONESIA",
+                sub: "Indonesia",
+                items: [
+                    [450, "Talempong", "Talempng"],
+                    [451, "Suling HI", "Suling HI"],
+                    [452, "Suling Hs", "SulingHs"],
+                    [453, "Suling Lv", "SulingLv"]
+                ]
+            },
+            {
+                name: "VIETNAM",
+                sub: "Vietnam",
+                items: [
+                    [454, "Taj Mahal", "Taj Mahal"],
+                    [455, "QuDi Vib", "QuDiVib"],
+                    [456, "Twin Sine", "TwinSine"]
+                ]
+            },
+            {
+                name: "ORIENTAL",
+                sub: "Oriental",
+                items: [
+                    [457, "Accordion c1", "Acord.c1"],
+                    [458, "Accordion 4L", "Acord.4L"],
+                    [459, "Oud Sad Verd", "OudSdVrd"],
+                    [460, "Divan Orn 1", "DivanOrn"],
+                    [461, "NAY 1", "NAY1"],
+                    [462, "Kanoun 3 Trm", "Kanun3Tr"],
+                    [463, "Mizmar Trm V", "MizmrTrV"],
+                    [464, "Strings Stage", "StrStage"],
+                    [465, "Aks-Baglama", "AksBagim"],
+                    [466, "Ney", "Ney"],
+                    [467, "Zurna TR", "ZurnaTR"],
+                    [468, "Pick Bs Line", "PickBsLn"],
+                    [469, "Violin Mono", "VinMono"],
+                    [470, "Truba", "Truba"],
+                    [471, "Bouzuki/Gld", "Bozuk/Gl"]
+                ]
+            },
+            {
+                name: "TURKEY",
+                sub: "Turkey",
+                items: [
+                    [472, "Aks-Baglama", "AksBagim"],
+                    [473, "Elk-Baglama", "ElkBaglm"],
+                    [474, "4st-Elk Bagla", "4ElkBglm"],
+                    [475, "Kanun", "Kanun"],
+                    [476, "TR-Klarnet", "TR-Kirnt"],
+                    [477, "TR-Yayli", "TR-Yayli"],
+                    [478, "TR-Keman", "TR-Keman"],
+                    [479, "UD", "UD"],
+                    [480, "Ney", "Ney"],
+                    [481, "Zurna-E", "Zurna-E"],
+                    [482, "ZurnaTR", "Zurna TR"],
+                    [483, "VIB-Zurna-A", "VibZrnA"],
+                    [484, "VIB-Zurna-D", "VibZrnD"],
+                    [485, "VIB-Zurna-E", "VibZrnE"]
+                ]
+            },
+            {
+                name: "BRAZIL",
+                sub: "Brazil",
+                items: [
+                    [486, "Acc. Master", "AcMaster"],
+                    [487, "Acc. Classic", "AcClassic"],
+                    [488, "Cavaquinho", "Cavagnho"],
+                    [489, "Warm JP STR", "WmJP-STR"],
+                    [490, "Blow Alto Vib", "BlwAltVb"],
+                    [491, "2600 Sine", "2600Sine"]
+                ]
+            },
+            {
+                name: "ETHNIC MISC.",
+                sub: "EthMisc.",
+                items: [
+                    [492, "Banjo 1", "Banjo1"],
+                    [493, "Banjo 2", "Banjo2"],
+                    [494, "Banjo 3", "Banjo3"],
+                    [495, "Shamisen 1", "Shamise1"],
+                    [496, "Shamisen 2", "Shamise2"],
+                    [497, "Shamisen 3", "Shamise3"],
+                    [498, "Koto 1", "Koto1"],
+                    [499, "Koto 2", "Koto2"],
+                    [500, "Taisho Koto", "Taishokt"],
+                    [501, "Kalimba 1", "Kalimba1"],
+                    [502, "Kalimba 2", "Kalimba2"],
+                    [503, "Kalimba 3", "Kalimba3"],
+                    [504, "Bag Pipe 1", "Bag Pipe1"],
+                    [505, "Bag Pipe 2", "Bag Pipe2"],
+                    [506, "Bag Pipe 3", "BagPipe3"],
+                    [507, "Fiddle 1", "Fiddle1"],
+                    [508, "Fiddle 2", "Fiddle2"],
+                    [509, "Fiddle 3", "Fiddle3"],
+                    [510, "Shanai 1", "Shanai1"],
+                    [511, "Shanai 2", "Shanai2"],
+                    [512, "Shanai 3", "Shanai3"]
+                ]
+            },
+            {
+                name: "PERCUSSION",
+                sub: "Perc.",
+                items: [
+                    [513, "Tinkle Bell 1", "TnkiBel1"],
+                    [514, "Tinkle Bell 2", "TnklBel2"],
+                    [515, "Tinkle Bell 3", "TnkiBel3"],
+                    [516, "Agogo 1", "Agogo1"],
+                    [517, "Agogo 2", "Agogo2"],
+                    [518, "Agogo 3", "Agogo3"],
+                    [519, "Steel Drums 1", "StelDrm1"],
+                    [520, "Steel Drums 2", "StelDrm2"],
+                    [521, "Steel Drums 3", "StelDrm3"],
+                    [522, "Woodblock 1", "WodBlok1"],
+                    [523, "Woodblock 2", "WodBlok2"],
+                    [524, "Woodblock 3", "WodBlok3"],
+                    [525, "Castanets 1", "Castant1"],
+                    [526, "Castanets 2", "Castant2"],
+                    [527, "Taiko Drum 1", "TaikDrm1"],
+                    [528, "Taiko Drum 2", "TaikDrm2"],
+                    [529, "Taiko Drum 3", "TaikDrm3"],
+                    [530, "Concert Bass Drum 1", "ConBsDm1"],
+                    [531, "Concert Bass Drum 2", "ConBsDm2"],
+                    [532, "Acoustic Bass Drum", "Bass Drum"],
+                    [533, "Room Kick", "RoomKick"],
+                    [534, "Power kick", "Powrkick"],
+                    [535, "Electric Bass Drum", "EIBsDrum"],
+                    [536, "Analog Bass Drum", "AnBsDrum"],
+                    [537, "Jazz Kick", "JazzKick"],
+                    [538, "Side Stick", "Sidstick"],
+                    [539, "Analog Rim Shot", "AnRiShot"],
+                    [540, "Acoustic Snare", "A.Snare"],
+                    [541, "Room Snare", "RomSnare"],
+                    [542, "Power Snare", "PowSnare"],
+                    [543, "Electric Snare", "E.Snare"],
+                    [544, "Analog Snare", "AnaSnare"],
+                    [545, "Jazz Snare", "JazSnare"],
+                    [546, "Brush Tap", "Brush Tap"],
+                    [547, "Concert SD", "ConcetSD"],
+                    [548, "Hand Clap", "HandClap"],
+                    [549, "Tom", "Tom"],
+                    [550, "Room Tom", "RoomTom"],
+                    [551, "Power Tom", "Power Tom"],
+                    [552, "Electric Tom", "ElecTom"],
+                    [553, "Analog Tom", "AnaTom"],
+                    [554, "Brush Tom", "Brush Tom"],
+                    [555, "Closed Hi-hat", "ClosedHH"],
+                    [556, "Analog Closed Hi-hat", "AnCloHH"],
+                    [557, "Pedal Hi-hat", "PedalHH"],
+                    [558, "Open Hi-hat", "OpenHH"],
+                    [559, "Crash Cymbal", "CrashCym"],
+                    [560, "Analog Cymbal", "AnaCym"],
+                    [561, "Ride Cymbal", "RideCym"],
+                    [562, "China Cymbal", "ChinaCym"],
+                    [563, "Ride Bell", "RideBell"],
+                    [564, "Tambourine", "Tambouri"],
+                    [565, "Splash Cymbal", "SplashCy"],
+                    [566, "Cowbell", "Cowbell"],
+                    [567, "Analog Cowbell", "AnaCowbl"],
+                    [568, "High Bongo", "HiBongo"],
+                    [569, "Low Bongo", "LoBongo"],
+                    [570, "Mute Hi Conga", "MuhiCnga"],
+                    [571, "Open Hi Conga", "OpHiCnga"],
+                    [572, "Low Conga", "LowConga"],
+                    [573, "Analog Hi Conga", "AnHiCnga"],
+                    [574, "Analog Mid Conga", "AnMiCnga"],
+                    [575, "Analog Low Conga", "AnLoCnga"],
+                    [576, "High Timbale", "HiTimbal"],
+                    [577, "Low Timbale", "LoTimbal"],
+                    [578, "Cabasa", "Cabasa"],
+                    [579, "Maracas", "Maracas"],
+                    [580, "Analog Maracas", "AnMaraca"],
+                    [581, "Short Guiro", "ShGuiro"],
+                    [582, "Long Guiro", "LoGuiro"],
+                    [583, "Claves", "Claves"],
+                    [584, "Mute Cuica", "MuCuica"],
+                    [585, "Open Cuica", "OpCuica"],
+                    [586, "Mute Triangle", "MuTrgle"],
+                    [587, "Open Triangle", "Op Trgle"],
+                    [588, "Shaker", "Shaker"],
+                    [589, "Mute Surdo", "MuSurdo"],
+                    [590, "Open Surdo", "OpSurdo"],
+                    [591, "Melodic Tom 1", "Melo Tom1"],
+                    [592, "Melodic Tom 2", "Melo Tom2"],
+                    [593, "Melodic Tom 3", "Melo Tom3"],
+                    [594, "Synth Drum 1", "SynDrum1"],
+                    [595, "Synth Drum 2", "SynDrum2"],
+                    [596, "Rhythm Box Tom", "RhythBox"],
+                    [597, "Electric Drum 1", "EleDrum1"],
+                    [598, "Electric Drum 2", "EleDrum2"],
+                    [599, "Reverse Cymbal 1", "RevCymb1"],
+                    [600, "Reverse Cymbal 2", "RevCymb2"]
+                ]
+            },
+            {
+                name: "SFX",
+                sub: "SFX",
+                items: [
+                    [601, "Guitar Fret Noise 1", "FreNoiz1"],
+                    [602, "Guitar Fret Noise 2", "FreNoiz2"],
+                    [603, "Guitar Cutting Noise 1", "GtCtNoz1"],
+                    [604, "Guitar Cutting Noise 2", "GtCtNoz2"],
+                    [605, "Acoustic Bass String Slap 1", "BsStSlp1"],
+                    [606, "Acoustic Bass String Slap 2", "BsStSlp2"],
+                    [607, "Breath Noise 1", "BrthNoz1"],
+                    [608, "Breath Noise 2", "BrthNoz2"],
+                    [609, "Flute Key Click 1", "FIKeyCk1"],
+                    [610, "Flute Key Click 2", "FIKeyCk2"],
+                    [611, "Seashore 1", "Seashor1"],
+                    [612, "Seashore 2", "Seashor2"],
+                    [613, "Rain", "Rain"],
+                    [614, "Thunder", "Thunder"],
+                    [615, "Wind", "Wind"],
+                    [616, "Stream", "Stream"],
+                    [617, "Bubble", "Bubble"],
+                    [618, "Bird Tweet 1", "Tweet1"],
+                    [619, "Bird Tweet 2", "Tweet2"],
+                    [620, "Dog", "Dog"],
+                    [621, "Horse Gallop", "HouseGip"],
+                    [622, "Telephone Ring 1", "Telphon1"],
+                    [623, "Telephone Ring 2", "Telphon2"],
+                    [624, "Door Creaking", "DoorCrek"],
+                    [625, "Door", "Door"],
+                    [626, "Scratch", "Scratch"],
+                    [627, "Wind Chime", "WindChim"],
+                    [628, "Helicopter", "Helicptr"],
+                    [629, "Car Engine", "CarEngin"],
+                    [630, "Car Stop", "CarStop"],
+                    [631, "Car Pass", "CarPass"],
+                    [632, "Car Crash", "CarCrash"],
+                    [633, "Siren", "Siren"],
+                    [634, "Train", "Train"],
+                    [635, "Jetplane", "Jetplane"],
+                    [636, "Starship", "Starship"],
+                    [637, "Burst Noise", "BurtNois"],
+                    [638, "Applause", "Applause"],
+                    [639, "Laughing", "Laughing"],
+                    [640, "Screaming", "Scream"],
+                    [641, "Punch", "Punch"],
+                    [642, "Heart Beat", "HeartBet"],
+                    [643, "Footsteps", "Footstep"],
+                    [644, "Gunshot", "Gunshot"],
+                    [645, "Machine Gun", "Machine Gun"],
+                    [646, "Lasergun", "Lasergun"],
+                    [647, "Explosion", "Explosio"]
+                ]
+            },
+            {
+                name: "COMBINED VOICE",
+                sub: "CombVoc",
+                items: [
+                    [648, "Stereo Piano & Strings Pad", "Pn&StrPd"],
+                    [649, "Stereo Piano & Choir", "Pn&Choir"],
+                    [650, "Stereo Piano & Synth Strings", "Pn&SyStr"],
+                    [651, "Stereo Piano & Warm Pad", "Pn&WrmPd"],
+                    [652, "Stereo Piano & Soft EP", "Pn&SfEP"],
+                    [653, "FM Electric Piano", "FMEP"],
+                    [654, "Digital Piano", "DigitlPn"],
+                    [655, "E. Piano & Strings", "EP&Str"],
+                    [656, "E.Piano & Acoustic Guitar", "EP&Gtr"],
+                    [657, "E.Piano & Vibraphone", "EP&Vibra"],
+                    [658, "E.Piano 2 & Pad", "EP2&Pad"],
+                    [659, "E.Piano 2 & Strings", "EP2&Str"],
+                    [660, "Harpsichord & Stereo Strings", "Hrps&Str"],
+                    [661, "Music Box & Stereo Strings", "MBox&Str"],
+                    [662, "Vibraphone & Stereo Strings", "Vib&Str"],
+                    [663, "Vibraphone Octave", "VibraOct"],
+                    [664, "Vibraphone & Marimba & Kalimba", "Vib&M&K"],
+                    [665, "Marimba & Kalimba", "Mar&Kal"],
+                    [666, "Marimba Delay", "MarDelay"],
+                    [667, "Xylophone Octave", "XylopOct"],
+                    [668, "Organ & Stereo Strings", "Orgn&Str"],
+                    [669, "Stereo Organ & Piano", "Orgn&Pno"],
+                    [670, "Rock Organ & Strings", "RkOr&Str"],
+                    [671, "Church Organ & Choir", "ChOr&Cho"],
+                    [672, "Church Organ & Strings", "ChOr&Str"],
+                    [673, "Acoustic Guitar & Flute", "Gtr&Flut"],
+                    [674, "Acoustic Guitar & Clavi", "Gtr&Clav"],
+                    [675, "24 String Guitar", "24StrGtr"],
+                    [676, "Steel Guitar & Warm Pad", "StGt&Pad"],
+                    [677, "Stereo Strings & Horn", "Str&Horn"],
+                    [678, "Orchestra", "Orchestr"],
+                    [679, "Full Strings 1", "FullStr1"],
+                    [680, "Full Strings 2", "FullStr2"],
+                    [681, "Symphonic", "Symphon"],
+                    [682, "Stereo Choir & Strings", "Cho&Str"],
+                    [683, "Stereo Choir & Steel Guitar", "Cho&Gtr"],
+                    [684, "3 Trumpets Loose", "3Trumpet"],
+                    [685, "Trombone & Stereo Strings", "Tomb&Str"],
+                    [686, "3 Trombones Loose", "3Trmbone"],
+                    [687, "3 Muted Trumpets Loose", "3MuTrump"],
+                    [688, "Club Brass", "ClubBras"],
+                    [689, "Brass & Woodwinds", "Brs&Wood"]
+                ]
+            },
+            {
+                name: "DRUMS",
+                sub: "Drums",
+                items: [
+                    [690, "Standard Kit", "StandKit"],
+                    [691, "Room Kit", "RoomKit"],
+                    [692, "Power Kit", "PowerKit"],
+                    [693, "Electronic Kit", "ElectKit"],
+                    [694, "Analog Kit", "AnalgKit"],
+                    [695, "Jazz Kit", "JazzKit"],
+                    [696, "Brush Kit", "BrushKit"],
+                    [697, "Orchestra Kit", "OrcheKit"],
+                    [698, "SFX Kit", "SFXKit"],
+                    [699, "Khaligi 1", "Khaligi1"],
+                    [700, "Khaligi 2", "Khaligi2"],
+                    [701, "Sharkiyat Kit", "Sharkiyt"],
+                    [702, "Oriental Kit 2", "OrKit2"],
+                    [703, "TR-Perc-Kit", "TR-Perc1"],
+                    [704, "TR-Drum-Kit", "TR-Drum"],
+                    [705, "Latin Drm Kit", "LatinDrm"],
+                    [706, "LD Std Kit", "LD-Std"],
+                    [707, "IndoMix4", "IndoMix4"]
+                ]
+            }
+        ];
+
+        // Flatten tones array for fast lookup
+        const allTones = [];
+        rawCategories.forEach(cat => {
+            cat.items.forEach(item => {
+                allTones.push({
+                    no: item[0],
+                    name: item[1],
+                    lcd: item[2],
+                    category: cat.name,
+                    categorySub: cat.sub
+                });
+            });
+        });
+
+        // State management
+        let selectedCategory = "ALL";
+        let searchQuery = "";
+        let favoritesOnly = false;
+        let favorites = new Set();
+        let keypadBuffer = "";
+
+        // Load favorites from localStorage
+        try {
+            const savedFavs = localStorage.getItem('roland_ex50_favs');
+            if (savedFavs) {
+                favorites = new Set(JSON.parse(savedFavs));
+            }
+        } catch (e) {
+            console.error(e);
+        }
+
+        function saveFavorites() {
+            try {
+                localStorage.setItem('roland_ex50_favs', JSON.stringify(Array.from(favorites)));
+            } catch (e) {
+                console.error(e);
+            }
+            updateFavCountBadge();
+        }
+
+        function updateFavCountBadge() {
+            // Mobile elements
+            const favBadge = document.getElementById('favCount');
+            const favBtn = document.getElementById('favoriteFilterBtn');
+            const favIcon = document.getElementById('favFilterIcon');
+
+            // Desktop elements
+            const favBadgeDesktop = document.getElementById('favCountDesktop');
+            const favBtnDesktop = document.getElementById('favoriteFilterBtnDesktop');
+            const favIconDesktop = document.getElementById('favFilterIconDesktop');
+
+            const count = favorites.size;
+
+            // Mobile badge
+            if (favBadge) {
+                favBadge.textContent = count;
+                if (count > 0) favBadge.classList.remove('hidden');
+                else favBadge.classList.add('hidden');
+            }
+
+            // Desktop badge
+            if (favBadgeDesktop) {
+                favBadgeDesktop.textContent = count;
+                if (count > 0) favBadgeDesktop.classList.remove('hidden');
+                else favBadgeDesktop.classList.add('hidden');
+            }
+
+            // Mobile button state
+            if (favBtn) {
+                if (favoritesOnly) {
+                    favBtn.classList.add('bg-amber-500/20', 'border-amber-400', 'text-amber-400');
+                    if (favIcon) favIcon.setAttribute('fill', 'currentColor');
+                } else {
+                    favBtn.classList.remove('bg-amber-500/20', 'border-amber-400', 'text-amber-400');
+                    if (favIcon) favIcon.removeAttribute('fill');
+                }
+            }
+
+            // Desktop button state
+            if (favBtnDesktop) {
+                if (favoritesOnly) {
+                    favBtnDesktop.classList.add('bg-amber-500/20', 'border-amber-400', 'text-amber-400');
+                    if (favIconDesktop) favIconDesktop.setAttribute('fill', 'currentColor');
+                } else {
+                    favBtnDesktop.classList.remove('bg-amber-500/20', 'border-amber-400', 'text-amber-400');
+                    if (favIconDesktop) favIconDesktop.removeAttribute('fill');
+                }
+            }
+        }
+
+        function toggleFavorite(toneNo, event) {
+            if (event) event.stopPropagation();
+            if (favorites.has(toneNo)) {
+                favorites.delete(toneNo);
+                showToast(`Tone #${toneNo} removed from favorites`);
+            } else {
+                favorites.add(toneNo);
+                showToast(`Tone #${toneNo} added to favorites`, 'star');
+            }
+            saveFavorites();
+            renderList();
+        }
+
+        function toggleFavoritesOnly() {
+            favoritesOnly = !favoritesOnly;
+            updateFavCountBadge();
+            renderList();
+        }
+
+        // Render Categories Navigation
+        function renderCategoryTabs() {
+            const tabsContainer = document.getElementById('categoryTabs');
+            let html = `
+        <button
+          onclick="selectCategory('ALL')"
+          class="category-tab tap-highlight-transparent whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 ${selectedCategory === 'ALL' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-dark-950 shadow-md font-bold' : 'bg-dark-800 text-slate-300 hover:bg-dark-700 border border-dark-700'}"
+        >
+          <span>All</span>
+          <span class="text-[10px] opacity-75 font-mono">707</span>
+        </button>
+      `;
+
+            rawCategories.forEach(cat => {
+                const isSelected = selectedCategory === cat.name;
+                html += `
+          <button
+            onclick="selectCategory('${cat.name}')"
+            class="category-tab tap-highlight-transparent whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${isSelected ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-dark-950 shadow-md font-bold' : 'bg-dark-800 text-slate-300 hover:bg-dark-700 border border-dark-700'}"
+          >
+            <span>${cat.name}</span>
+            <span class="text-[10px] opacity-75 font-mono">(${cat.items.length})</span>
+          </button>
+        `;
+            });
+
+            tabsContainer.innerHTML = html;
+        }
+
+        function selectCategory(catName) {
+            selectedCategory = catName;
+            favoritesOnly = false;
+            updateFavCountBadge();
+            renderCategoryTabs();
+            renderList();
+        }
+
+        // Render tone items (Solid, Crisp Modern Cards)
+        function renderList() {
+            const toneList = document.getElementById('toneList');
+            const emptyState = document.getElementById('emptyState');
+            const resultsCount = document.getElementById('resultsCount');
+
+            const query = searchQuery.trim().toLowerCase();
+
+            const filtered = allTones.filter(item => {
+                // Category filter
+                if (selectedCategory !== "ALL" && item.category !== selectedCategory) {
+                    return false;
+                }
+
+                // Favorites filter
+                if (favoritesOnly && !favorites.has(item.no)) {
+                    return false;
+                }
+
+                // Search text / number filter
+                if (query) {
+                    const noStr = item.no.toString();
+                    const nameStr = item.name.toLowerCase();
+                    const lcdStr = item.lcd.toLowerCase();
+                    const catStr = item.category.toLowerCase();
+                    const catSubStr = item.categorySub.toLowerCase();
+
+                    // Direct match on number or text contains
+                    if (
+                        noStr === query ||
+                        noStr.padStart(3, '0') === query ||
+                        noStr.includes(query) ||
+                        nameStr.includes(query) ||
+                        lcdStr.includes(query) ||
+                        catStr.includes(query) ||
+                        catSubStr.includes(query)
+                    ) {
+                        return true;
+                    }
+                    return false;
+                }
+
+                return true;
+            });
+
+            // Update count
+            resultsCount.innerHTML = `Showing <span class="font-bold text-orange-400">${filtered.length}</span> tone${filtered.length === 1 ? '' : 's'} ${favoritesOnly ? '(Favorites)' : ''}`;
+
+            if (filtered.length === 0) {
+                toneList.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
+
+            let html = '';
+            filtered.forEach(tone => {
+                const isFav = favorites.has(tone.no);
+                const formattedNo = String(tone.no).padStart(3, '0');
+
+                html += `
+          <div
+            onclick="copyTone(${tone.no}, '${tone.name.replace(/'/g, "\\'")}', '${tone.lcd}')"
+            class="group relative p-3 rounded-xl border border-dark-700 hover:border-orange-500/60 bg-dark-850 transition-all active:scale-[0.99] flex items-center justify-between gap-3 cursor-pointer shadow-sm hover:shadow-md"
+          >
+            <!-- Left: Number Badge & Name Details -->
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <div class="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-dark-900 border border-dark-700 flex flex-col items-center justify-center font-mono group-hover:border-orange-500/50 group-hover:bg-dark-800 transition-colors">
+                <span class="text-[9px] text-slate-400 font-medium tracking-tighter leading-none">NO.</span>
+                <span class="text-sm sm:text-base font-extrabold text-orange-400 leading-tight">${formattedNo}</span>
+              </div>
+              
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5">
+                  <h2 class="text-sm sm:text-[14.5px] font-bold text-slate-100 truncate group-hover:text-orange-300 transition-colors">
+                    ${highlightMatch(tone.name, query)}
+                  </h2>
+                </div>
+                <div class="flex items-center gap-2 mt-0.5 text-xs text-slate-400 flex-wrap">
+                  <span class="inline-flex items-center px-1.5 py-0.2 rounded bg-dark-900 border border-dark-700 text-[10.5px] sm:text-[11px] font-mono text-emerald-400 font-semibold tracking-tight">
+                    ${highlightMatch(tone.lcd, query)}
+                  </span>
+                  <span class="text-[11px] text-slate-400 truncate">${tone.categorySub}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Action Buttons -->
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                onclick="toggleFavorite(${tone.no}, event)"
+                class="tap-highlight-transparent p-2 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-dark-800 transition"
+                title="Favorite"
+              >
+                <i data-lucide="star" class="w-4 h-4 ${isFav ? 'text-amber-400 fill-amber-400' : ''}"></i>
+              </button>
+              
+              <div class="p-2 rounded-lg text-slate-400 group-hover:text-slate-200 group-hover:bg-dark-800 transition" title="Copy Tone">
+                <i data-lucide="copy" class="w-4 h-4"></i>
+              </div>
+            </div>
+          </div>
+        `;
+            });
+
+            toneList.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Helper text highlight
+        function highlightMatch(text, query) {
+            if (!query || query.length < 2) return text;
+            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return text.replace(regex, '<span class="bg-orange-500/25 text-orange-300 font-bold px-0.5 rounded">$1</span>');
+        }
+
+        // Copy Tone Helper
+        function copyTone(no, name, lcd) {
+            const textToCopy = `${String(no).padStart(3, '0')} - ${name} [${lcd}]`;
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(textToCopy);
+            } else {
+                const temp = document.createElement('input');
+                temp.value = textToCopy;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+            }
+            showToast(`Tone #${no} (${name}) copied!`, 'clipboard-check');
+        }
+
+        // Toast Functionality
+        let toastTimeout;
+        function showToast(message, iconName = 'check') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMessage.textContent = message;
+            toastIcon.setAttribute('data-lucide', iconName);
+            lucide.createIcons();
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+                toast.classList.remove('opacity-100');
+            }, 2200);
+        }
+
+        // Search Input Handling
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            if (searchQuery.length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+            } else {
+                clearSearchBtn.classList.add('hidden');
+            }
+            renderList();
+        });
+
+        function clearSearch() {
+            searchInput.value = '';
+            searchQuery = '';
+            clearSearchBtn.classList.add('hidden');
+            renderList();
+            searchInput.focus();
+        }
+
+        function resetFilters() {
+            clearSearch();
+            selectedCategory = 'ALL';
+            favoritesOnly = false;
+            renderCategoryTabs();
+            updateFavCountBadge();
+            renderList();
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Keypad Modal Logic
+        function openKeypadModal() {
+            keypadBuffer = "";
+            updateKeypadDisplay();
+            const modal = document.getElementById('keypadModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeKeypadModal() {
+            const modal = document.getElementById('keypadModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function pressKey(key) {
+            if (key === 'clear') {
+                keypadBuffer = "";
+            } else if (key === 'back') {
+                keypadBuffer = keypadBuffer.slice(0, -1);
+            } else {
+                if (keypadBuffer.length < 3) {
+                    keypadBuffer += key;
+                    // Cap at 707
+                    if (parseInt(keypadBuffer, 10) > 707) {
+                        keypadBuffer = "707";
+                    }
+                }
+            }
+            updateKeypadDisplay();
+        }
+
+        function updateKeypadDisplay() {
+            const display = document.getElementById('keypadDisplay');
+            display.textContent = keypadBuffer ? keypadBuffer : '_';
+        }
+
+        function submitKeypad() {
+            if (keypadBuffer) {
+                selectedCategory = "ALL";
+                favoritesOnly = false;
+                renderCategoryTabs();
+                updateFavCountBadge();
+
+                searchInput.value = keypadBuffer;
+                searchQuery = keypadBuffer;
+                clearSearchBtn.classList.remove('hidden');
+
+                closeKeypadModal();
+                renderList();
+                scrollToTop();
+            } else {
+                closeKeypadModal();
+            }
+        }
+
+        // Close modal on outer click
+        document.getElementById('keypadModal').addEventListener('click', (e) => {
+            if (e.target.id === 'keypadModal') {
+                closeKeypadModal();
+            }
+        });
+
+        // Global Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('keypadModal');
+            const isModalOpen = !modal.classList.contains('hidden');
+
+            if (isModalOpen) {
+                if (e.key >= '0' && e.key <= '9') {
+                    e.preventDefault();
+                    pressKey(e.key);
+                } else if (e.key === 'Backspace') {
+                    e.preventDefault();
+                    pressKey('back');
+                } else if (e.key === 'Delete' || e.key === 'c' || e.key === 'C') {
+                    e.preventDefault();
+                    pressKey('clear');
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitKeypad();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeKeypadModal();
+                }
+                return;
+            }
+
+            // If user is currently typing in search input
+            if (document.activeElement === searchInput) {
+                if (e.key === 'Escape') {
+                    searchInput.blur();
+                    if (searchQuery) clearSearch();
+                }
+                return;
+            }
+
+            // Quick open search with "/"
+            if (e.key === '/') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            } else if (e.key === 'k' || e.key === 'K') {
+                e.preventDefault();
+                openKeypadModal();
+            } else if (e.key === 'Escape') {
+                if (searchQuery) {
+                    clearSearch();
+                }
+            }
+        });
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCategoryTabs();
+            updateFavCountBadge();
+            renderList();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+
+</html>
